@@ -1,7 +1,7 @@
 from textwrap import dedent
 from argparse import RawTextHelpFormatter
 
-from .base import BaseApp
+from dlalbum.apps.base import BaseApp
 
 class ConfigApp(BaseApp):
     @staticmethod

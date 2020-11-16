@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from colorama import Fore, Style
+
 class BaseApp(ABC):
     @staticmethod
     @abstractmethod
@@ -9,3 +11,6 @@ class BaseApp(ABC):
     @abstractmethod
     def start_execution(self, arg_parser, **kwargs):
         pass
+
+    def error_text(self, text):
+        return f'{Fore.RED}{text}{Style.RESET_ALL}'
