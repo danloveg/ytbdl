@@ -20,6 +20,10 @@ setup(
         "youtube-dl>=2020.11.17",
     ],
 
+    package_data={
+        'dlalbum': ['default_config.yaml']
+    },
+
     zip_safe=False,
     description='Download music from youtube-dl and autotag with beets',
     author='Daniel Lovegrove',

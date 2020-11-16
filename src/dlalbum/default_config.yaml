@@ -1,0 +1,35 @@
+youtube-dl:
+    options: --audio-format m4a
+
+beets:
+    import_options: --from-scratch
+
+    config:
+        # Feel free to modify the beets config here, but don't remove lines that say DO NOT REMOVE
+        directory: {beets_dir}
+
+        import:
+            move: yes
+
+        match:
+            # Automatically accept over 90% similar
+            strong_rec_thresh: 0.10
+            max_rec:
+                # Don't worry so much about missing tracks
+                missing_tracks: strong
+
+        pluginpath: {beetsplug_path} # DO NOT REMOVE
+
+        plugins: # DO NOT REMOVE
+            - fromdirname # DO NOT REMOVE
+            - fromyoutubetitle # DO NOT REMOVE
+            - fetchart
+            - embedart
+            - zero
+
+        fetchart:
+            maxwidth: 512
+        embedart:
+            remove_art_file: yes
+        zero:
+            fields: day month genre
