@@ -17,7 +17,7 @@ setup(
     install_requires=[
         "beets>=1.4.9",
         "confuse>=1.3.0",
-        "youtube-dl>=2020.11.17",
+        "youtube-dl>=2020.11.18",
     ],
 
     package_data={
