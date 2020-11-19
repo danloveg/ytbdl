@@ -17,8 +17,10 @@ class DownloadApp(BaseApp):
         dl_parser = sub_parser.add_parser(name='get')
         dl_parser.add_argument('-v', '--verbose', action='store_true',
                                help='Log verbose information')
-        dl_parser.add_argument('artist', help='The artist who created the album to download')
-        dl_parser.add_argument('album', help='The name of the album to download')
+        dl_parser.add_argument('-a', '--artist', action='store', required=True,
+                               help='The artist who created the album to download')
+        dl_parser.add_argument('-a', '--album', action='store', required=True,
+                               help='The name of the album to download')
         dl_parser.add_argument('urls', nargs='+',
                                help='One or more URLs to download audio from')
 
@@ -91,9 +93,9 @@ class DownloadApp(BaseApp):
             album_folder.mkdir()
         return album_folder
 
-    def download_music(self, dir_: Path, urls: list):
-        ''' Downloads one or more songs using youtube-dl in a subprocess into the dir_. Adds any
-        extra args to the youtube-dl call (before the URLs) that may be in
+    def download_music(self, album_dir: Path, urls: list):
+        ''' Downloads one or more songs using youtube-dl in a subprocess into the album_dir. Adds
+        any extra args to the youtube-dl call (before the URLs) that may be in
         :code:`config['youtube-dl']['options']`.
 
         Embedding youtube-dl is not well documented. Calling youtube-dl, a Python program, from
@@ -102,7 +104,7 @@ class DownloadApp(BaseApp):
         sense if the argument list is static.
 
         Args:
-            dir_ (Path): The directory to download files into
+            album_dir (Path): The directory to download files into
             urls (list): A list of URLs to download music from.
         '''
         default_args = ['--extract-audio', '--output', "%(title)s.%(ext)s"]
@@ -121,7 +123,7 @@ class DownloadApp(BaseApp):
             stdin=sys.stdin,
             stdout=sys.stdout,
             stderr=sys.stderr,
-            cwd=str(dir_))
+            cwd=str(album_dir))
         result.check_returncode()
         self.logger.debug('youtube-dl exited with return code 0')
 
@@ -136,7 +138,7 @@ class DownloadApp(BaseApp):
             album_dir (Path): The directory the album was downloaded to
         '''
         self.logger.info('Backing up your beets config')
-        self.logger.info('Writing custom beet config')
+        self.logger.info('Writing custom beets config')
         import_dir = str(album_dir.parent.parent.resolve()).replace('\\', '/')
         raw_config = get_beets_config(import_dir)
         self.backup_beets_config = overwrite_beets_config(raw_config)
