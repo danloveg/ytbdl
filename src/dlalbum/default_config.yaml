@@ -2,8 +2,6 @@ youtube-dl:
     options: --audio-format m4a
 
 beets:
-    import_options: --from-scratch
-
     # Feel free to modify the beets config here, but don't remove lines that say DO NOT REMOVE
     # For those unfamiliar, the > indicates a multiline string.
     config: >
