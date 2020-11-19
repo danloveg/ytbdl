@@ -3,11 +3,11 @@ import sys
 from subprocess import CalledProcessError, run
 from pathlib import Path
 
+
 from dlalbum import config_exists
-from dlalbum.configtools import get_extra_youtube_dl_args, get_extra_beet_import_args,\
-    get_beets_config
-from dlalbum.beets import overwrite_beets_config, restore_backup_beets_config
-from dlalbum.exceptions import *
+from dlalbum.configtools import get_extra_youtube_dl_args, get_beets_config
+from dlalbum.beets import overwrite_beets_config, restore_backup_beets_config, beet_import
+from dlalbum.exceptions import ConfigurationError
 from dlalbum.apps.base import BaseApp
 
 
@@ -15,6 +15,8 @@ class DownloadApp(BaseApp):
     @staticmethod
     def add_sub_parser_arguments(sub_parser):
         dl_parser = sub_parser.add_parser(name='get')
+        dl_parser.add_argument('-v', '--verbose', action='store_true',
+                               help='Log verbose information')
         dl_parser.add_argument('artist', help='The artist who created the album to download')
         dl_parser.add_argument('album', help='The name of the album to download')
         dl_parser.add_argument('urls', nargs='+',
@@ -24,11 +26,19 @@ class DownloadApp(BaseApp):
 
     def __init__(self):
         self.backup_beets_config = None
+        self.verbose = False
+        self.logger = None
+
+    def configure_logging(self):
+        level = 'DEBUG' if self.verbose else 'INFO'
+        self.logger = self.get_logger('dlalbum', level)
 
     def start_execution(self, arg_parser, **kwargs):
+        self.verbose = kwargs.get('verbose')
+        self.configure_logging()
         if not config_exists():
-            print('Create a config before continuing with:')
-            print('dlalbum config create')
+            self.logger.info('Create a config before continuing with:')
+            self.logger.info('dlalbum config create')
             return
 
         artist_name = kwargs.get('artist')
@@ -36,14 +46,14 @@ class DownloadApp(BaseApp):
         urls = kwargs.get('urls')
 
         try:
-            print('Downloading "{0}" by {1}'.format(album_name, artist_name))
+            self.logger.info(msg='Downloading "{0}" by {1}'.format(album_name, artist_name))
             album_dir = self.create_album_dir(artist_name, album_name)
             self.download_music(album_dir, urls)
-            print('\nAutotagging album...')
+            self.logger.info('Autotagging album')
             self.autotag_album(album_dir)
         except (CalledProcessError, ConfigurationError) as exc:
-            self.print_exc(exc)
-            print('Aborting.')
+            self.logger.error(msg=str(exc))
+            self.logger.warning('Aborting')
             sys.exit(1)
         finally:
             self.cleanup()
@@ -71,11 +81,13 @@ class DownloadApp(BaseApp):
         root = Path('.')
         artist_folder = root / self.clean_path_name(artist)
         if not artist_folder.exists():
+            self.logger.debug(msg='Creating artist folder "{0}"'.format(artist_folder))
             artist_folder.mkdir()
         album_folder = artist_folder / self.clean_path_name(album)
         if album_folder.exists() and list(album_folder.glob('*')):
             raise FileExistsError('The album folder already exists and is not empty')
         if not album_folder.exists():
+            self.logger.debug(msg='Creating album folder "{0}"'.format(album_folder))
             album_folder.mkdir()
         return album_folder
 
@@ -96,9 +108,12 @@ class DownloadApp(BaseApp):
         default_args = ['--extract-audio', '--output', "%(title)s.%(ext)s"]
         extra_args = get_extra_youtube_dl_args()
         if extra_args:
-            print('Using extra arguments for youtube-dl:', *extra_args)
+            self.logger.info(msg='Using extra arguments for youtube-dl: {0}'.format(
+                ' '.join(extra_args)))
+        else:
+            self.logger.debug('No extra arguments for youtube-dl found')
         command = ['youtube-dl', *default_args, *extra_args, *urls]
-        print(*command)
+        self.logger.debug(msg='Opening subprocess: {0}'.format(' '.join(command)))
         result = run(
             args=command,
             check=True,
@@ -108,28 +123,33 @@ class DownloadApp(BaseApp):
             stderr=sys.stderr,
             cwd=str(dir_))
         result.check_returncode()
+        self.logger.debug('youtube-dl exited with return code 0')
 
-    def autotag_album(self, album_dir):
-        extra_args = get_extra_beet_import_args()
-        if extra_args:
-            print('Using extra arguments for beet import:', *extra_args)
-        command = ['beet', 'import', *extra_args, str(album_dir).replace('\\', '/')]
+    def autotag_album(self, album_dir: Path):
+        ''' Autotag the downloaded music with beets. The configuration for beets is overwritten with
+        the beets config from dlalbum's configuration file.
+
+        Embedding beets is even less documented than youtube-dl, so it is called in a subprocess the
+        same as youtube-dl is. The same way that
+
+        Args:
+            album_dir (Path): The directory the album was downloaded to
+        '''
+        self.logger.info('Backing up your beets config')
+        self.logger.info('Writing custom beet config')
         import_dir = str(album_dir.parent.parent.resolve()).replace('\\', '/')
         raw_config = get_beets_config(import_dir)
         self.backup_beets_config = overwrite_beets_config(raw_config)
-        print(*command)
-        result = run(
-            args=command,
-            check=True,
-            shell=False,
-            stdin=sys.stdin,
-            stdout=sys.stdout,
-            stderr=sys.stderr)
-        result.check_returncode()
+        self.logger.debug(msg='Backup copy stored at "{0}"'.format(self.backup_beets_config))
+        self.logger.info('Starting beets import session')
+        beet_import(album_dir)
 
     def clean_path_name(self, name):
         return self.INVALID_FILENAME_CHARS.sub('_', name)
 
     def cleanup(self):
         if self.backup_beets_config is not None:
+            self.logger.info(msg='Restoring backup beets config copy')
             restore_backup_beets_config(self.backup_beets_config)
+            self.logger.debug(msg='Backup copy restored from "{0}"'.format(
+                self.backup_beets_config))
