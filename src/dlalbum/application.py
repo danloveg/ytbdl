@@ -1,5 +1,4 @@
 import argparse
-import colorama
 
 from .apps.config import ConfigApp
 from .apps.download import DownloadApp
@@ -10,7 +9,6 @@ ACTIVATED_APPS = {
 }
 
 def main():
-    colorama.init()
     arg_parser = get_app_arg_parser()
     parsed_namespace = arg_parser.parse_args()
     arguments = vars(parsed_namespace)

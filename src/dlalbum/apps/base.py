@@ -1,7 +1,5 @@
-import re
+import logging
 from abc import ABC, abstractmethod
-
-from colorama import Fore, Style
 
 class BaseApp(ABC):
     @staticmethod
@@ -13,12 +11,12 @@ class BaseApp(ABC):
     def start_execution(self, arg_parser, **kwargs):
         pass
 
-    def error_text(self, text):
-        return f'{Fore.RED}{text}{Style.RESET_ALL}'
-
-    def get_human_friendly_exception_name(self, exception):
-        return re.sub('([A-Z])', r' \1', exception.__class__.__name__).strip()
-
-    def print_exc(self, exception):
-        name = self.get_human_friendly_exception_name(exception)
-        print(f'{self.error_text(name)}:', exception)
+    def get_logger(self, name, level):
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        handler = logging.StreamHandler()
+        handler.setLevel(level)
+        formatter = logging.Formatter('[{name}] {levelname}: {message}', style='{')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
