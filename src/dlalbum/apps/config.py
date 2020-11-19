@@ -1,5 +1,5 @@
 import shutil
-import subprocess
+from subprocess import call, CalledProcessError
 
 from pathlib import Path
 from textwrap import dedent
@@ -23,6 +23,9 @@ class ConfigApp(BaseApp):
                                        dump: Show the contents of the configuration file
                                        '''))
 
+    def __init__(self):
+        self.logger = self.get_logger('config', 'INFO')
+
     def start_execution(self, arg_parser, **kwargs):
         config_action = kwargs.get('action')
         try:
@@ -30,38 +33,39 @@ class ConfigApp(BaseApp):
                 if not config_exists():
                     self.create_new_config()
                 else:
-                    print('Configuration file already exists here:')
+                    self.logger.info('Configuration file already exists here:')
                     self.print_config_sources()
 
             elif config_action == 'edit':
                 if not config_exists():
-                    print('Create a config before continuing with:')
-                    print('dlalbum config create')
+                    self.logger.info('Create a config before continuing with:')
+                    self.logger.info('dlalbum config create')
                 elif 'editor' in config:
                     editor = config['editor'].get(str)
                     config_file = Path(get_loaded_config_sources()[0])
                     config_file.resolve()
-                    subprocess.call([editor, str(config_file)])
+                    call([editor, str(config_file)])
                 else:
-                    print('To edit your configuration like this, you must first specify which '
-                          'editor to use for editing. You need to add a line in your config file '
-                          'similar to the following text, substituting "notepad" for the editor '
-                          'you want to use:')
-                    print('\neditor: notepad')
-                    print('\nYou can find your config file here:')
+                    self.logger.info(
+                        'To edit your configuration like this, you must first specify which '
+                        'editor to use for editing. You need to add a line in your config file '
+                        'similar to the following text, substituting "notepad" for the editor '
+                        'you want to use:')
+                    self.logger.info('\neditor: notepad')
+                    self.logger.info('\nYou can find your config file here:')
                     self.print_config_sources()
 
             elif config_action == 'path':
                 if not config_exists():
-                    print('Create a config before continuing with:')
-                    print('dlalbum config create')
+                    self.logger.info('Create a config before continuing with:')
+                    self.logger.info('dlalbum config create')
                 else:
                     self.print_config_sources()
 
             elif config_action == 'dump':
                 if not config_exists():
-                    print('Create a config before continuing with:')
-                    print('dlalbum config create')
+                    self.logger.info('Create a config before continuing with:')
+                    self.logger.info('dlalbum config create')
                 else:
                     with open(get_loaded_config_sources()[0], 'r') as config_file:
                         for line in config_file.readlines():
@@ -69,12 +73,12 @@ class ConfigApp(BaseApp):
             else:
                 arg_parser.error(f'Invalid config action: "{config_action}"')
 
-        except subprocess.CalledProcessError as exc:
-            self.print_exc(exc)
-            print('Try adding the selected editor to your PATH before continuing, or just provide the '
-                  'full path to the editor\'s executable')
+        except CalledProcessError as exc:
+            self.logger.error(str(exc))
+            self.logger.info('Try adding the selected editor to your PATH before continuing, or '
+                             'just provide the full path to the editor\'s executable')
         except Exception as exc:
-            self.print_exc(exc)
+            self.logger.error(str(exc))
 
     def print_config_sources(self):
         for source in get_loaded_config_sources():
@@ -85,7 +89,7 @@ class ConfigApp(BaseApp):
         default_config = Path(__file__).parent.parent / 'default_config.yaml'
 
         if not default_config.exists():
-            print('The default_config.yaml file does not exist.')
+            self.logger.info('The default_config.yaml file does not exist.')
         else:
             shutil.copy(default_config, new_config_file)
-            print(f'Created a new configuration file at {new_config_file}.')
+            self.logger.info(msg='Created a new configuration file at {0}.'.format(new_config_file))
