@@ -6,7 +6,7 @@ from beets import config as beetsconfig
 from beets.ui import _setup
 from beets.ui.commands import import_func
 
-from dlalbum import beetsplug
+from ytbeetdl import beetsplug
 
 
 def get_beetsplug_dir() -> Path:

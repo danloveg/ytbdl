@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='dlalbum',
+    name='ytbeetdl',
     version='0.0.1',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
@@ -10,7 +10,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'dlalbum = dlalbum.application:main'
+            'ytbeetdl = ytbeetdl.application:main'
         ]
     },
 
@@ -22,8 +22,10 @@ setup(
     ],
 
     package_data={
-        'dlalbum': ['default_config.yaml']
+        'ytbeetdl': ['default_config.yaml']
     },
+
+    python_requires='>=3.5.10',
 
     zip_safe=False,
     description='Download music from youtube-dl and autotag with beets',

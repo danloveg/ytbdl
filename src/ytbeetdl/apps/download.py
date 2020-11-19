@@ -4,11 +4,11 @@ from subprocess import CalledProcessError, run
 from pathlib import Path
 
 
-from dlalbum import config_exists
-from dlalbum.configtools import get_extra_youtube_dl_args, get_beets_config
-from dlalbum.beets import overwrite_beets_config, restore_backup_beets_config, beet_import
-from dlalbum.exceptions import ConfigurationError
-from dlalbum.apps.base import BaseApp
+from ytbeetdl import config_exists
+from ytbeetdl.configtools import get_extra_youtube_dl_args, get_beets_config
+from ytbeetdl.beets import overwrite_beets_config, restore_backup_beets_config, beet_import
+from ytbeetdl.exceptions import ConfigurationError
+from ytbeetdl.apps.base import BaseApp
 
 
 class DownloadApp(BaseApp):
@@ -17,9 +17,9 @@ class DownloadApp(BaseApp):
         dl_parser = sub_parser.add_parser(name='get')
         dl_parser.add_argument('-v', '--verbose', action='store_true',
                                help='Log verbose information')
-        dl_parser.add_argument('-a', '--artist', action='store', required=True,
+        dl_parser.add_argument('--artist', action='store', required=True,
                                help='The artist who created the album to download')
-        dl_parser.add_argument('-a', '--album', action='store', required=True,
+        dl_parser.add_argument('--album', action='store', required=True,
                                help='The name of the album to download')
         dl_parser.add_argument('urls', nargs='+',
                                help='One or more URLs to download audio from')
@@ -33,14 +33,14 @@ class DownloadApp(BaseApp):
 
     def configure_logging(self):
         level = 'DEBUG' if self.verbose else 'INFO'
-        self.logger = self.get_logger('dlalbum', level)
+        self.logger = self.get_logger('ytbeetdl', level)
 
     def start_execution(self, arg_parser, **kwargs):
         self.verbose = kwargs.get('verbose')
         self.configure_logging()
         if not config_exists():
             self.logger.info('Create a config before continuing with:')
-            self.logger.info('dlalbum config create')
+            self.logger.info('ytbeetdl config create')
             return
 
         artist_name = kwargs.get('artist')
@@ -129,7 +129,7 @@ class DownloadApp(BaseApp):
 
     def autotag_album(self, album_dir: Path):
         ''' Autotag the downloaded music with beets. The configuration for beets is overwritten with
-        the beets config from dlalbum's configuration file.
+        the beets config from ytbeetdl's configuration file.
 
         Embedding beets is even less documented than youtube-dl, so it is called in a subprocess the
         same as youtube-dl is. The same way that

@@ -1,9 +1,9 @@
 import yaml
 import shlex
 
-from dlalbum import config, config_exists
-from dlalbum.beets import get_beetsplug_dir
-from dlalbum.exceptions import ConfigurationError
+from ytbeetdl import config, config_exists
+from ytbeetdl.beets import get_beetsplug_dir
+from ytbeetdl.exceptions import ConfigurationError
 
 def get_extra_youtube_dl_args() -> list:
     if not config_exists():
