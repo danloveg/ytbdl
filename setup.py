@@ -17,6 +17,7 @@ setup(
     install_requires=[
         "beets>=1.4.9",
         "confuse>=1.3.0",
+        "pyyaml>=5.3.1",
         "youtube-dl>=2020.11.18",
     ],
 

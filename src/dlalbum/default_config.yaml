@@ -4,9 +4,10 @@ youtube-dl:
 beets:
     import_options: --from-scratch
 
-    config:
-        # Feel free to modify the beets config here, but don't remove lines that say DO NOT REMOVE
-        directory: {beets_dir}
+    # Feel free to modify the beets config here, but don't remove lines that say DO NOT REMOVE
+    # For those unfamiliar, the > indicates a multiline string.
+    config: >
+        directory: "{import_dir}" # DO NOT REMOVE
 
         import:
             move: yes
@@ -18,7 +19,7 @@ beets:
                 # Don't worry so much about missing tracks
                 missing_tracks: strong
 
-        pluginpath: {beetsplug_path} # DO NOT REMOVE
+        pluginpath: "{beetsplug_dir}" # DO NOT REMOVE
 
         plugins: # DO NOT REMOVE
             - fromdirname # DO NOT REMOVE
