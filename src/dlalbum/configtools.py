@@ -14,15 +14,6 @@ def get_extra_youtube_dl_args() -> list:
         extra_args = shlex.split(arg_str)
     return extra_args
 
-def get_extra_beet_import_args() -> list:
-    if not config_exists():
-        raise ConfigurationError('Could not find a config file')
-    extra_args = []
-    if 'beets' in config and 'import_options' in config['beets']:
-        arg_str = config['beets']['import_options'].as_str()
-        extra_args = shlex.split(arg_str)
-    return extra_args
-
 def get_beets_config(import_dir) -> str:
     if not config_exists():
         raise ConfigurationError('Could not find a config file')
