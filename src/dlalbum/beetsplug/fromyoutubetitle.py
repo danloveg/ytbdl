@@ -35,7 +35,7 @@ YOUTUBE_TITLE_JUNK = [
     re.compile(r'(?i)(?P<junk>[\(\[\{].*?Official.*?[\)\]\}])'),
     re.compile(r'(?i)(?P<junk>[\(\[\{].*?Original.*?[\)\]\}])'),
     re.compile(r'(?i)(?P<junk>[\(\[\{].*?Version.*?[\)\]\}])'),
-    re.compile(r'(?i)(?P<junk>[\(\[\{].*?Prod(?:uced)?\sBy.*?[\)\]\}])'),
+    re.compile(r'(?i)(?P<junk>[\(\[\{].*?Prod(?:uced|\.)?\sBy.*?[\)\]\}])'),
 ]
 
 
