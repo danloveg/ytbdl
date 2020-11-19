@@ -1,6 +1,5 @@
 import re
 import sys
-import shlex
 from subprocess import CalledProcessError, run
 from pathlib import Path
 
@@ -43,13 +42,6 @@ class DownloadApp(BaseApp):
         finally:
             self.cleanup()
 
-    def get_extra_youtube_dl_args(self):
-        extra_args = []
-        if 'youtube-dl' in config and 'options' in config['youtube-dl']:
-            arg_str = config['youtube-dl']['options'].as_str()
-            print('Using extra post processing arguments for youtube-dl:', arg_str)
-            extra_args = shlex.split(arg_str)
-        return extra_args
 
     def download_music(self, dir_: Path, urls: list):
         ''' Downloads one or more songs using youtube-dl in a subprocess into the dir_. Adds any
