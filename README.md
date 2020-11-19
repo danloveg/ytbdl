@@ -1,4 +1,4 @@
-# ytbeetdl: Youtube-DL/Beets Music Downloader and Tagger
+# ytbeetdl: Music Downloader and Tagger
 
 Combines the power of [youtube-dl](https://github.com/ytdl-org/youtube-dl) and [beets](https://github.com/beetbox/beets) to download music from the internet and automatically tag it.
 
