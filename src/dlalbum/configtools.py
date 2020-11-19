@@ -2,21 +2,30 @@ import yaml
 import shlex
 
 from dlalbum import config, config_exists
+from dlalbum.beets import get_beetsplug_dir
 from dlalbum.exceptions import ConfigurationError
 
 def get_extra_youtube_dl_args() -> list:
     if not config_exists():
-        raise FileNotFoundError('Could not find a config file')
+        raise ConfigurationError('Could not find a config file')
     extra_args = []
     if 'youtube-dl' in config and 'options' in config['youtube-dl']:
         arg_str = config['youtube-dl']['options'].as_str()
-        print('Using extra post processing arguments for youtube-dl:', arg_str)
         extra_args = shlex.split(arg_str)
     return extra_args
 
-def get_beet_config(beetsplug_dir, import_dir) -> str:
+def get_extra_beet_import_args() -> list:
     if not config_exists():
-        raise FileNotFoundError('Could not find a config file')
+        raise ConfigurationError('Could not find a config file')
+    extra_args = []
+    if 'beets' in config and 'import_options' in config['beets']:
+        arg_str = config['beets']['import_options'].as_str()
+        extra_args = shlex.split(arg_str)
+    return extra_args
+
+def get_beets_config(import_dir) -> str:
+    if not config_exists():
+        raise ConfigurationError('Could not find a config file')
     if 'beets' not in config:
         raise ConfigurationError('beets key is missing in configuration')
     if 'config' not in config['beets']:
@@ -53,7 +62,7 @@ def get_beet_config(beetsplug_dir, import_dir) -> str:
                                  'in configuration')
 
     raw_beets_config = raw_beets_template.format(
-        beetsplug_dir=str(beetsplug_dir),
+        beetsplug_dir=str(get_beetsplug_dir()),
         import_dir=str(import_dir),
     )
     return raw_beets_config
