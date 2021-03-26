@@ -1,34 +1,30 @@
-youtube-dl:
-    options: --audio-format m4a
+# This is a Beets config. This will be combined with your beets config before
+# an album is downloaded. Do not remove the lines that say "DO NOT REMOVE"
 
-beets:
-    # Feel free to modify the beets config here, but don't remove lines that say DO NOT REMOVE
-    # For those unfamiliar, the > indicates a multiline string.
-    config: >
-        directory: "{import_dir}" # DO NOT REMOVE
+directory: "{import_dir}" # DO NOT REMOVE
 
-        import:
-            move: yes
+import:
+    move: yes
 
-        match:
-            # Automatically accept over 90% similar
-            strong_rec_thresh: 0.10
-            max_rec:
-                # Don't worry so much about missing tracks
-                missing_tracks: strong
+match:
+    # Automatically accept over 90% similar - requires input less often
+    strong_rec_thresh: 0.10
+    max_rec:
+        # Don't worry so much about missing tracks
+        missing_tracks: strong
 
-        pluginpath: "{beetsplug_dir}" # DO NOT REMOVE
+pluginpath: "{beetsplug_dir}" # DO NOT REMOVE
 
-        plugins: # DO NOT REMOVE
-            - fromdirname # DO NOT REMOVE
-            - fromyoutubetitle # DO NOT REMOVE
-            - fetchart
-            - embedart
-            - zero
+plugins: # DO NOT REMOVE
+    - fromdirname # DO NOT REMOVE
+    - fromyoutubetitle # DO NOT REMOVE
+    - fetchart
+    - embedart
+    - zero
 
-        fetchart:
-            maxwidth: 512
-        embedart:
-            remove_art_file: yes
-        zero:
-            fields: day month genre
+fetchart:
+    maxwidth: 512
+embedart:
+    remove_art_file: yes
+zero:
+    fields: day month genre
