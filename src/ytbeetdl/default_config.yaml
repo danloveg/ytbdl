@@ -26,5 +26,3 @@ fetchart:
     maxwidth: 512
 embedart:
     remove_art_file: yes
-zero:
-    fields: day month genre
