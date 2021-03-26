@@ -7,6 +7,8 @@ from beets.ui import _setup
 from beets.ui.commands import import_func
 
 from ytbeetdl import beetsplug
+from ytbeetdl import config, config_exists, get_main_config_path
+from ytbeetdl.exceptions import ConfigurationError
 
 
 def get_beetsplug_dir() -> Path:
@@ -52,3 +54,41 @@ def beet_import(album_dir: Path):
     import_func(library, import_options, [str(album_dir)])
     plugins.send('cli_exit', lib=library)
     library._close()
+    beetsconfig.clear()
+
+
+def create_temp_config(import_dir: str) -> BytesIO:
+    ''' Create an in-memory beets config file from the user's ytbeetdl config. '''
+    if not config_exists():
+        raise ConfigurationError('Could not find a config file')
+
+    # Verify that the options with "DO NOT REMOVE" were not removed
+    if 'directory' not in config:
+        raise ConfigurationError('The directory key is missing from the configuration')
+    if config['directory'].as_str() != r'{import_dir}':
+        raise ConfigurationError(r'directory must be set as "{import_dir}" in the '
+                                 f"configuration, but found {config['directory'].as_str()}")
+    if 'pluginpath' not in config:
+        raise ConfigurationError('The pluginpath key is missing from the configuration')
+    if config['pluginpath'].as_str() != r'{beetsplug_dir}':
+        raise ConfigurationError(r'pluginpath must be set as "{beetsplug_dir}" in the '
+                                 f"configuration, but found {config['pluginpath'].as_str()}")
+    if 'plugins' not in config:
+        raise ConfigurationError('The plugins key is missing from the configuration')
+    if 'fromdirname' not in config['plugins'].get(list):
+        raise ConfigurationError('fromdirname plugin is missing from plugins list in the '
+                                 'configuration')
+    if 'fromyoutubetitle' not in config['plugins'].get(list):
+        raise ConfigurationError('fromyoutubetitle plugin is missing from plugins list in the '
+                                 'configuration')
+
+    raw_beets_template = open(get_main_config_path(), 'r', encoding='utf-8').read()
+    raw_beets_config = raw_beets_template.format(
+        beetsplug_dir=str(get_beetsplug_dir()),
+        import_dir=str(import_dir),
+    )
+    return BytesIO(raw_beets_config.encode('utf-8'))
+
+
+def get_beetsplug_dir() -> Path:
+    return str(Path(beetsplug.__file__).parent.resolve()).replace('\\', '/')
