@@ -60,12 +60,16 @@ class DownloadApp(BaseApp):
             self.logger.info(msg='Downloading "{0}" by {1}'.format(album_name, artist_name))
             album_dir = self.create_album_dir(artist_name, album_name)
             self.download_music(album_dir, extra_args, urls)
-            self.logger.info('Autotagging album')
+            self.logger.info(msg='Autotagging album downloaded to {0}'.format(str(album_dir)))
             self.autotag_album(album_dir)
         except KeyboardInterrupt:
             self.logger.info('User interrupted program.')
             self.logger.info('Aborting.')
             sys.exit(0)
+        except FileExistsError as exc:
+            self.logger.error(msg='FileExistsError: {0}'.format(str(exc)))
+            self.logger.warning('Aborting')
+            sys.exit(1)
         except (CalledProcessError, ConfigurationError) as exc:
             self.logger.error(msg='{0} encountered:'.format(exc.__class__.__name__))
             self.logger.error(msg=str(exc))
@@ -180,7 +184,6 @@ class DownloadApp(BaseApp):
         import_dir = str(album_dir.parent.parent.resolve()).replace('\\', '/')
         self.temp_config = create_temp_config(import_dir)
         self.logger.debug('Created a temporary in-memory beets config')
-        self.logger.info('Starting beets import session')
         beet_import(album_dir, self.temp_config)
 
     def clean_path_name(self, name):
