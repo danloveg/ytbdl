@@ -1,13 +1,12 @@
-import shutil
+from argparse import Namespace as ArgparseNamespace
 from io import BytesIO
 from pathlib import Path
-from types import SimpleNamespace
 
 import yaml
 
 from beets import config as beetsconfig
 from beets.ui import _setup
-from beets.ui.commands import import_func
+from beets.ui.commands import import_files
 from confuse.yaml_util import load_yaml, Loader
 from confuse.sources import ConfigSource
 
@@ -17,6 +16,9 @@ from ytbeetdl.exceptions import ConfigurationError
 
 
 def set_file_monkeypatch(filename):
+    ''' Replacement for the confuse.Configuration.set_file function that can
+    handle loading a file held in BytesIO as well as from a file path
+    '''
     if isinstance(filename, BytesIO):
         file_path = None
         bytes_io = filename
@@ -43,12 +45,16 @@ def beet_import(album_dir: Path, custom_config: BytesIO):
     '''
     # Patch the config to change the set_file function
     setattr(beetsconfig, 'set_file', set_file_monkeypatch)
-    # Create fake namespaces that would normally be created by parsing command line args
-    setup_options = SimpleNamespace(directory=None, config=custom_config, plugins=None, library=None)
-    import_options = SimpleNamespace(copy=None, library=None)
-    # Start the import
+
+    # Create fake setup options and run the setup
+    setup_options = ArgparseNamespace(directory=None, config=custom_config, plugins=None,
+                                      library=None)
     _, plugins, library = _setup(setup_options)
-    import_func(library, import_options, [str(album_dir)])
+
+    # Start the import
+    paths = [str(album_dir).encode('utf-8')]
+    import_files(library, paths, None)
+
     # Clean up
     plugins.send('cli_exit', lib=library)
     library._close()
@@ -89,4 +95,5 @@ def create_temp_config(import_dir: str) -> BytesIO:
 
 
 def get_beetsplug_dir() -> Path:
+    ''' Get the path to the beets plugin directory with custom plugins '''
     return str(Path(beetsplug.__file__).parent.resolve()).replace('\\', '/')
