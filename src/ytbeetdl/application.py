@@ -16,7 +16,11 @@ def main():
     application.start_execution(arg_parser, **arguments)
 
 def get_app_arg_parser():
-    app_parser = argparse.ArgumentParser()
+    app_parser = argparse.ArgumentParser(description=(
+        'download songs with yt-dlp and auto-tag them with beets. use the get '
+        'sub-app to *get* music, and use the config sub-app to *config*ure '
+        'yt-dlp\'s and beets\' behaviour'
+    ))
     subparser = app_parser.add_subparsers(title='Sub-application Choice')
     subparser.required = True
     subparser.dest = 'sub-app'
