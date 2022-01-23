@@ -142,11 +142,12 @@ class DownloadApp(BaseApp):
             self.cleanup()
 
     def create_album_dir(self, artist: str, album: str) -> Path:
-        ''' Create the artist and album folders for the music to be moved into. If the album folder
-        already exists and is not empty, an exception is raised as this may indicate that the album
-        has already been downloaded.
+        ''' Create the artist and album folders for the music to be moved into.
+        If the album folder already exists and is not empty, an exception is
+        raised as this may indicate that the album has already been downloaded.
 
-        The directory structure is created under the current directory in this manner:
+        The directory structure is created under the current directory in this
+        manner:
 
         .. code-block::
 
@@ -164,35 +165,47 @@ class DownloadApp(BaseApp):
         root = Path('.')
         artist_folder = root / self.clean_path_name(artist)
         if not artist_folder.exists():
-            self.logger.debug(msg='Creating artist folder "{0}"'.format(artist_folder))
+            self.logger.debug(msg='Creating artist folder "{0}"'.format(
+                artist_folder
+            ))
             artist_folder.mkdir()
         album_folder = artist_folder / self.clean_path_name(album)
         if album_folder.exists() and list(album_folder.glob('*')):
-            raise FileExistsError('The album folder already exists and is not empty')
+            raise FileExistsError(
+                'The album folder "{0}" already exists and is not empty'.format(
+                    str(album_folder)
+                )
+            )
         if not album_folder.exists():
-            self.logger.debug(msg='Creating album folder "{0}"'.format(album_folder))
+            self.logger.debug(msg='Creating album folder "{0}"'.format(
+                album_folder
+            ))
             album_folder.mkdir()
         return album_folder
 
     def download_music(self, album_dir: Path, extra_args: list, urls: list):
-        ''' Downloads one or more songs using youtube-dl in a subprocess into the album_dir.
+        ''' Downloads one or more songs using yt-dlp in a subprocess into the
+        album_dir.
 
-        Embedding youtube-dl is not well documented. Calling youtube-dl, a Python program, from
-        within Python makes the most sense, but there is no easy way to map from the command line
-        options to a dict. Embedding youtube-dl only seems to make sense if the argument list is
-        static, which it is not, here.
+        Embedding yt-dlp is not well documented. Calling yt-dlp, a Python
+        program, from within Python makes the most sense, but there is no easy
+        way to map from the command line options to a dict. Embedding yt-dlp
+        only seems to make sense if the argument list is static, which it is
+        not, here.
 
         Args:
             album_dir (Path): The directory to download files into
             urls (list): A list of URLs to download music from.
         '''
         if extra_args:
-            self.logger.info(msg='Using extra arguments for youtube-dl: {0}'.format(
+            self.logger.info(msg='Using extra arguments for yt-dlp: {0}'.format(
                 ' '.join(extra_args)))
         else:
-            self.logger.debug('No extra arguments for youtube-dl found')
-        command = ['youtube-dl', *self.DEFAULT_YTDL_ARGS, *extra_args, '--', *urls]
-        self.logger.debug(msg='Opening subprocess: {0}'.format(' '.join(command)))
+            self.logger.debug('No extra arguments for yt-dlp found')
+        command = ['yt-dlp', *self.DEFAULT_YTDL_ARGS, *extra_args, '--', *urls]
+        self.logger.debug(msg='Opening subprocess: {0}'.format(
+            ' '.join(command)
+        ))
         result = run(
             args=command,
             check=True,
@@ -202,11 +215,11 @@ class DownloadApp(BaseApp):
             stderr=sys.stderr,
             cwd=str(album_dir))
         result.check_returncode()
-        self.logger.debug('youtube-dl exited with return code 0')
+        self.logger.debug('yt-dlp exited with return code 0')
 
     def autotag_album(self, album_dir: Path):
-        ''' Autotag the downloaded music with beets. The configuration for beets is combined with a
-        temporary in-memory file, which is copied from ytbeetdl's configuration.
+        ''' Autotag the downloaded music with beets. The configuration for beets
+        is combined with ytbdl's configuration file.
 
         Args:
             album_dir (Path): The directory the album was downloaded to
@@ -217,10 +230,22 @@ class DownloadApp(BaseApp):
         beet_import(album_dir, self.temp_config)
 
     def clean_path_name(self, name):
+        ''' Replace any invalid file name characters with an underline
+
+        Args:
+            name (str): The file name
+
+        Returns:
+            (str): A sanitized filename
+        '''
         return self.INVALID_FILENAME_CHARS.sub('_', name)
 
     def cleanup(self):
+        ''' Remove the temporary config from memory
+        '''
         if self.temp_config is not None:
-            self.logger.debug('Releasing {} bytes held by temporary config'.format(
-                self.temp_config.tell()))
+            self.logger.debug(msg=(
+                'Releasing {} bytes held by temporary config'.format(
+                self.temp_config.tell()
+            )))
             self.temp_config.close()
