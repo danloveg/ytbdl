@@ -7,10 +7,10 @@ from pathlib import Path
 
 import confuse
 
-from ytbeetdl import config_exists, config
-from ytbeetdl.beets import beet_import, create_temp_config
-from ytbeetdl.exceptions import ConfigurationError
-from ytbeetdl.apps.base import BaseApp
+from ytbdl import config_exists, config
+from ytbdl.beets import beet_import, create_temp_config
+from ytbdl.exceptions import ConfigurationError
+from ytbdl.apps.base import BaseApp
 
 
 def ytdl_options(value: str) -> list:

@@ -1,7 +1,7 @@
 import confuse
 from pathlib import Path
 
-config = confuse.LazyConfig('ytbeetdl', None)
+config = confuse.LazyConfig('ytbdl', None)
 
 def get_loaded_config_sources():
     config.resolve()

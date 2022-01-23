@@ -10,9 +10,9 @@ from beets.ui.commands import import_files
 from confuse.yaml_util import load_yaml, Loader
 from confuse.sources import ConfigSource
 
-from ytbeetdl import beetsplug
-from ytbeetdl import config, config_exists, get_main_config_path
-from ytbeetdl.exceptions import ConfigurationError
+from ytbdl import beetsplug
+from ytbdl import config, config_exists, get_main_config_path
+from ytbdl.exceptions import ConfigurationError
 
 
 def set_file_monkeypatch(filename):
@@ -62,7 +62,7 @@ def beet_import(album_dir: Path, custom_config: BytesIO):
 
 
 def create_temp_config(import_dir: str) -> BytesIO:
-    ''' Create an in-memory beets config file from the user's ytbeetdl config. '''
+    ''' Create an in-memory beets config file from the user's ytbdl config. '''
     if not config_exists():
         raise ConfigurationError('Could not find a config file')
 

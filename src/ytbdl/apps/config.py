@@ -5,8 +5,8 @@ from pathlib import Path
 from textwrap import dedent
 from argparse import RawTextHelpFormatter
 
-from ytbeetdl import config, get_loaded_config_sources, config_exists, get_main_config_path
-from ytbeetdl.apps.base import BaseApp
+from ytbdl import config, get_loaded_config_sources, config_exists, get_main_config_path
+from ytbdl.apps.base import BaseApp
 
 class ConfigApp(BaseApp):
     @staticmethod
@@ -39,7 +39,7 @@ class ConfigApp(BaseApp):
             elif config_action == 'edit':
                 if not config_exists():
                     self.logger.info('Create a config before continuing with:')
-                    self.logger.info('ytbeetdl config create')
+                    self.logger.info('ytbdl config create')
                 elif 'editor' in config:
                     editor = config['editor'].get(str)
                     config_file = Path(get_loaded_config_sources()[0])
@@ -58,14 +58,14 @@ class ConfigApp(BaseApp):
             elif config_action == 'path':
                 if not config_exists():
                     self.logger.info('Create a config before continuing with:')
-                    self.logger.info('ytbeetdl config create')
+                    self.logger.info('ytbdl config create')
                 else:
                     self.print_config_sources()
 
             elif config_action == 'dump':
                 if not config_exists():
                     self.logger.info('Create a config before continuing with:')
-                    self.logger.info('ytbeetdl config create')
+                    self.logger.info('ytbdl config create')
                 else:
                     with open(get_loaded_config_sources()[0], 'r') as config_file:
                         for line in config_file.readlines():

@@ -1,4 +1,4 @@
-# ytbeetdl: Music Downloader and Tagger
+# ytbdl: Music Downloader and Tagger
 
 Combines the power of [yt-dlp](https://github.com/yt-dlp/yt-dlp) and [beets](https://github.com/beetbox/beets) to download music from the internet and automatically tag it.
 
@@ -8,7 +8,7 @@ Note that this application only supports Python 3.6+.
 
 ## Installation
 
-Clone this repository, open a terminal or shell in the `ytbeetdl` directory, and run the following command:
+Clone this repository, open a terminal or shell in the `ytbdl` directory, and run the following command:
 
 ```shell
 pip install -e .
@@ -96,7 +96,7 @@ Make sure not to remove any lines that say "DO NOT REMOVE" or you will encounter
 
 ## Configuration Notes
 
-ytbdl exposes a configuration file that can be used to control the behaviour of beets during the auto-tag process. This configuration file *is* a beets config file, and "overwrites" your beets config when ytbdl calls beets. All of the configuration options you'd use with beets can be used in the ytbeetdl configuration. If you already have a beets config, it will not be modified, but the options specified in the ytbeetdl configuration have higher priority and will take precedence over any existing options.
+ytbdl exposes a configuration file that can be used to control the behaviour of beets during the auto-tag process. This configuration file *is* a beets config file, and "overwrites" your beets config when ytbdl calls beets. All of the configuration options you'd use with beets can be used in the ytbdl configuration. If you already have a beets config, it will not be modified, but the options specified in the ytbdl configuration have higher priority and will take precedence over any existing options.
 
 The only two option that ytbdl exposes that aren't beets config options are the `editor` and `ytdl_args` options. For a list of beets' options, view the [beets documentation](https://beets.readthedocs.io/en/stable/reference/config.html).
 

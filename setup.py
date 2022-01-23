@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='ytbeetdl',
+    name='ytbdl',
     version='0.0.3',
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
@@ -9,7 +9,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'ytbdl = ytbeetdl.application:main'
+            'ytbdl = ytbdl.application:main'
         ]
     },
 
@@ -20,14 +20,14 @@ setup(
     ],
 
     package_data={
-        'ytbeetdl': ['default_config.yaml']
+        'ytbdl': ['default_config.yaml']
     },
 
-    python_requires='>=3.5.10',
+    python_requires='>=3.6.0',
 
     zip_safe=False,
     description='Download music with yt-dlp and autotag it with beets',
     author='Daniel Lovegrove',
-    author_email='Daniel.Lovegrove@umanitoba.ca',
+    author_email='d.lovegrove11@gmail.com',
     license='MIT',
 )
