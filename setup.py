@@ -9,14 +9,14 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'ytbeetdl = ytbeetdl.application:main'
+            'ytbdl = ytbeetdl.application:main'
         ]
     },
 
     install_requires=[
         "beets==1.5.0",
         "requests>=2.0.0",
-        "youtube-dl>=2021.3.25",
+        "yt-dlp>=2021.11.10.1",
     ],
 
     package_data={
@@ -26,7 +26,7 @@ setup(
     python_requires='>=3.5.10',
 
     zip_safe=False,
-    description='Download music from youtube-dl and autotag with beets',
+    description='Download music with yt-dlp and autotag it with beets',
     author='Daniel Lovegrove',
     author_email='Daniel.Lovegrove@umanitoba.ca',
     license='MIT',
