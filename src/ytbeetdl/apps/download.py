@@ -1,10 +1,13 @@
+#pylint: disable=consider-using-f-string
 import re
 import shlex
 import sys
 from subprocess import CalledProcessError, run
 from pathlib import Path
 
-from ytbeetdl import config_exists
+import confuse
+
+from ytbeetdl import config_exists, config
 from ytbeetdl.beets import beet_import, create_temp_config
 from ytbeetdl.exceptions import ConfigurationError
 from ytbeetdl.apps.base import BaseApp
@@ -82,40 +85,55 @@ class DownloadApp(BaseApp):
 
     def configure_logging(self):
         level = 'DEBUG' if self.verbose else 'INFO'
-        self.logger = self.get_logger('ytbeetdl', level)
+        self.logger = self.get_logger('ytbdl', level)
 
     def start_execution(self, arg_parser, **kwargs):
         self.verbose = kwargs.get('verbose')
         self.configure_logging()
         if not config_exists():
             self.logger.info('Create a config before continuing with:')
-            self.logger.info('ytbeetdl config create')
+            self.logger.info('ytbdl config create')
             return
 
         artist_name = kwargs.get('artist')
         album_name = kwargs.get('album')
         urls = kwargs.get('urls')
+
+        # Combine console and configuration ytdl args
+        extra_args = kwargs.get('ytdl_args', [])
         try:
-            extra_args = self.parse_ytdl_options(kwargs.get('ytdl_options'))
-        except ValueError as exc:
-            arg_parser.error(str(exc))
+            for config_arg in config['ytdl_args'].get(list):
+                if config_arg not in extra_args:
+                    extra_args.append(config_arg)
+        except confuse.exceptions.NotFoundError:
+            self.logger.debug('ytdl_args option was not found in config file')
+        except confuse.exceptions.ConfigTypeError:
+            self.logger.error('ytdl_args config option is not a list!')
+            self.logger.warning('Aborting')
+            sys.exit(1)
 
         try:
-            self.logger.info(msg='Downloading "{0}" by {1}'.format(album_name, artist_name))
+            self.logger.info(msg='Downloading "{0}" by {1}'.format(
+                album_name, artist_name
+            ))
             album_dir = self.create_album_dir(artist_name, album_name)
             self.download_music(album_dir, extra_args, urls)
-            self.logger.info(msg='Autotagging album downloaded to {0}'.format(str(album_dir)))
+            self.logger.info(msg='Autotagging album downloaded to {0}'.format(
+                str(album_dir)
+            ))
             self.autotag_album(album_dir)
         except KeyboardInterrupt:
             self.logger.info('User interrupted program.')
             self.logger.info('Aborting.')
-            sys.exit(0)
+            sys.exit(2)
         except FileExistsError as exc:
             self.logger.error(msg='FileExistsError: {0}'.format(str(exc)))
             self.logger.warning('Aborting')
             sys.exit(1)
         except (CalledProcessError, ConfigurationError) as exc:
-            self.logger.error(msg='{0} encountered:'.format(exc.__class__.__name__))
+            self.logger.error(msg='{0} encountered:'.format(
+                exc.__class__.__name__
+            ))
             self.logger.error(msg=str(exc))
             self.logger.warning('Aborting')
             sys.exit(1)
