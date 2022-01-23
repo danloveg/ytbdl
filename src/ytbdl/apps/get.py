@@ -8,7 +8,7 @@ from pathlib import Path
 import confuse
 
 from ytbdl import config_exists, config
-from ytbdl.beets import beet_import, create_temp_config
+from ytbdl.beets import beet_import
 from ytbdl.exceptions import ConfigurationError
 from ytbdl.apps.base import BaseApp
 
@@ -113,15 +113,21 @@ class DownloadApp(BaseApp):
             sys.exit(1)
 
         try:
+            # Create download directory
+            album_dir = self.create_album_dir(artist_name, album_name)
+
+            # Download music to directory
             self.logger.info(msg='Downloading "{0}" by {1}'.format(
                 album_name, artist_name
             ))
-            album_dir = self.create_album_dir(artist_name, album_name)
             self.download_music(album_dir, extra_args, urls)
+
+            # Autotag music in directory
             self.logger.info(msg='Autotagging album downloaded to {0}'.format(
                 str(album_dir)
             ))
-            self.autotag_album(album_dir)
+            beet_import(album_dir, self.logger)
+
         except KeyboardInterrupt:
             self.logger.info('User interrupted program.')
             self.logger.info('Aborting.')
@@ -137,9 +143,6 @@ class DownloadApp(BaseApp):
             self.logger.error(msg=str(exc))
             self.logger.warning('Aborting')
             sys.exit(1)
-        finally:
-            self.logger.debug('Cleaning up')
-            self.cleanup()
 
     def create_album_dir(self, artist: str, album: str) -> Path:
         ''' Create the artist and album folders for the music to be moved into.
@@ -183,6 +186,17 @@ class DownloadApp(BaseApp):
             album_folder.mkdir()
         return album_folder
 
+    def clean_path_name(self, name):
+        ''' Replace any invalid file name characters with an underline
+
+        Args:
+            name (str): The file name
+
+        Returns:
+            (str): A sanitized filename
+        '''
+        return self.INVALID_FILENAME_CHARS.sub('_', name)
+
     def download_music(self, album_dir: Path, extra_args: list, urls: list):
         ''' Downloads one or more songs using yt-dlp in a subprocess into the
         album_dir.
@@ -216,36 +230,3 @@ class DownloadApp(BaseApp):
             cwd=str(album_dir))
         result.check_returncode()
         self.logger.debug('yt-dlp exited with return code 0')
-
-    def autotag_album(self, album_dir: Path):
-        ''' Autotag the downloaded music with beets. The configuration for beets
-        is combined with ytbdl's configuration file.
-
-        Args:
-            album_dir (Path): The directory the album was downloaded to
-        '''
-        import_dir = str(album_dir.parent.parent.resolve()).replace('\\', '/')
-        self.temp_config = create_temp_config(import_dir)
-        self.logger.debug('Created a temporary in-memory beets config')
-        beet_import(album_dir, self.temp_config)
-
-    def clean_path_name(self, name):
-        ''' Replace any invalid file name characters with an underline
-
-        Args:
-            name (str): The file name
-
-        Returns:
-            (str): A sanitized filename
-        '''
-        return self.INVALID_FILENAME_CHARS.sub('_', name)
-
-    def cleanup(self):
-        ''' Remove the temporary config from memory
-        '''
-        if self.temp_config is not None:
-            self.logger.debug(msg=(
-                'Releasing {} bytes held by temporary config'.format(
-                self.temp_config.tell()
-            )))
-            self.temp_config.close()
