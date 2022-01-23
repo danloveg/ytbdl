@@ -10,23 +10,67 @@ from ytbeetdl.exceptions import ConfigurationError
 from ytbeetdl.apps.base import BaseApp
 
 
+def ytdl_options(value: str) -> list:
+    ''' Convert a string into a set of command line arguments for yt-dlp
+
+    Args:
+        value (str): Input string received
+
+    Returns:
+        (list): A valid list of command line arguments for yt-dlp
+    '''
+    if not value:
+        return []
+
+    args = shlex.split(value)
+    for arg in ('-x', '--extract-audio'):
+        if arg in args:
+            raise ValueError(
+                f'The {arg} yt-dlp option is already specified for you, you do '
+                'not need to add it'
+            )
+    for arg in ('-o', '--output'):
+        if arg in args:
+            raise ValueError(
+                f'The {arg} yt-dlp option is already in use, you may not '
+                'specify a custom output format'
+            )
+    return args
+
 class DownloadApp(BaseApp):
+    ''' App to download and tag audio files downloaded from the internet.
+    '''
+
     @staticmethod
     def add_sub_parser_arguments(sub_parser):
-        dl_parser = sub_parser.add_parser(name='get',
-            description=('Get an album from YouTube with youtube-dl before auto-tagging it with '
-                         'beets'))
-        dl_parser.add_argument('-v', '--verbose', action='store_true',
-                               help='Log verbose information')
-        dl_parser.add_argument('--ytdl-options', type=str,
-                               help=('command line options to pass to youtube-dl. For example, '
-                                     '"-f bestaudio[ext=m4a]"'))
-        dl_parser.add_argument('--artist', action='store', required=True,
-                               help='The artist who created the album to download')
-        dl_parser.add_argument('--album', action='store', required=True,
-                               help='The name of the album to download')
-        dl_parser.add_argument('urls', nargs='+',
-                               help='One or more URLs to download audio from')
+        dl_parser = sub_parser.add_parser(name='get', description=(
+            'download one or more audio files with yt-dlp before tagging them '
+            'as an album with beets. beets\' behaviour can be changed by '
+            'modifying the ytbdl config file, which is itself a beets config '
+            'file. the config file also has a ytdl_args option that can be '
+            'used to control yt-dlp\'s behaviour (or use --ytdl-args)'
+        ))
+        dl_parser.add_argument('-v', '--verbose', action='store_true', help=(
+            'log verbose (debug) information'
+        ))
+        dl_parser.add_argument('-y', '--ytdl-args', default=[],
+            type=ytdl_options, help=(
+            'command line arguments to pass to yt-dlp. For example: '
+            '"--format bestaudio[ext=m4a]". you may also specify yt-dlp '
+            'options in the ytdl_args setting in the config file. you may '
+            'not use -x/--extract-audio or -o/--output as these are already in '
+            'use. --ytdl-args are always combined with any existing args in '
+            'the ytdl_args config option'
+        ))
+        dl_parser.add_argument('artist', help=(
+            'the artist who created the album'
+        ))
+        dl_parser.add_argument('album', help=(
+            'the name of the album to download'
+        ))
+        dl_parser.add_argument('urls', nargs='+', help=(
+            'one or more URLs to download audio from'
+        ))
 
     INVALID_FILENAME_CHARS = re.compile(r'[^\w\-_\. ]')
     DEFAULT_YTDL_ARGS = ['--extract-audio', '--output', "%(title)s.%(ext)s"]
