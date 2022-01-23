@@ -32,7 +32,7 @@ You can control `ytbdl` with the config file, or using command line arguments.
 
 ## Changing yt-dlp's Behaviour
 
-You may change how yt-dlp behaves by specifying arguments on the command line, or by adding arguments to the configuration file.
+You may change how yt-dlp behaves by specifying arguments on the command line, or by adding arguments to the configuration file. [Click here for a list of yt-dlp options](https://github.com/yt-dlp/yt-dlp#usage-and-options).
 
 To pass options to `yt-dlp` from the command line, use the `--ytdl-args` option:
 
@@ -53,14 +53,16 @@ Use `ytdl_args` in the config file for settings you want to use all the time. Us
 
 ## Changing beets' Behaviour
 
-You can modify beets' behaviour by editing ytbdl's config. ytbdl's config file *is* a beets config file, so edit it as you would a beets config file. To edit the config, set an editor in the config file. First, open the configuration to edit it:
+You can modify beets' behaviour by editing ytbdl's config. ytbdl's config file *is* a beets config file, so edit it as you would a beets config file. [Click here for a list of beets configuration options](https://beets.readthedocs.io/en/stable/reference/config.html).
+
+To edit ytbdl's config, set an editor in the config file. First, open the configuration to edit it:
 
 ```shell
 # If you like vim!
-vim $(ytbeetdl config path)
+vim $(ytbdl config path)
 
 # If you're on Windows and like notepad!
-notepad $(ytbeetdl config path)
+notepad $(ytbdl config path)
 ```
 
 Add an `editor` to the YAML configuration:
@@ -72,7 +74,7 @@ editor: vim
 `ytbdl` will read this option and allow you to edit the configuration with that editor using the `edit` command:
 
 ```shell
-ytbeetdl config edit
+ytbdl config edit
 ```
 
 For example, maybe you want to add the [zero](https://beets.readthedocs.io/en/stable/plugins/zero.html) plugin. Simply add it to the list of plugins:
