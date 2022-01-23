@@ -141,38 +141,6 @@ class DownloadApp(BaseApp):
             self.logger.debug('Cleaning up')
             self.cleanup()
 
-    def parse_ytdl_options(self, raw_options: str) -> list:
-        ''' Parse the list of youtube-dl options the user specified into a list of command line
-        options. Raises a ValueError if the user supplied an --output or -o option.
-
-        Args:
-            raw_options (str): A string of command line args
-
-        Returns:
-            (list): A list of command line options parsed from the raw_options
-        '''
-        if not raw_options:
-            return []
-
-        extra_args = shlex.split(raw_options)
-
-        if '--extract-audio' in extra_args:
-            self.logger.warning(('The --extract-audio option is already specified for you, you do '
-                                 'not need to add it'))
-            while '--extract-audio' in extra_args:
-                extra_args.remove('--extract-audio')
-        if '-x' in extra_args:
-            self.logger.warning(('The -x option is already specified for you as --extract-audio, '
-                                 'you do not need to add it'))
-            while '-x' in extra_args:
-                extra_args.remove('-x')
-
-        for not_allowed in ('--output', '-o'):
-            if not_allowed in extra_args:
-                raise ValueError((f'You cannot pass "{not_allowed}" in --ytdl-options, the output '
-                                  'option is already in use'))
-        return extra_args
-
     def create_album_dir(self, artist: str, album: str) -> Path:
         ''' Create the artist and album folders for the music to be moved into. If the album folder
         already exists and is not empty, an exception is raised as this may indicate that the album
