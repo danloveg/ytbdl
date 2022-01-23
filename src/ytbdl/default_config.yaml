@@ -1,8 +1,8 @@
 # This option can be used to specify arguments to yt-dlp
 
 ytdl_args:
-  - '-f'
-  - 'bestaudio[ext=m4a]'
+  - -f
+  - bestaudio[ext=m4a]
 
 
 # This is a Beets config. This will be combined with your beets config before
