@@ -1,7 +1,7 @@
 import argparse
 
 from .apps.config import ConfigApp
-from .apps.download import DownloadApp
+from .apps.get import DownloadApp
 
 ACTIVATED_APPS = {
     'config': ConfigApp,
