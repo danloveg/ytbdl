@@ -1,27 +1,27 @@
 #pylint: disable=consider-using-f-string
-from subprocess import run
 from pathlib import Path
+from subprocess import CalledProcessError
 import shlex
 import sys
 
+from yt_dlp import main as yt_dlp_main
 
-# yt-dlp arguments used regardless of invocation
-DEFAULT_YTDL_ARGS = (
-    '--extract-audio',
-    '--output',
-    "%(title)s.%(ext)s"
-)
+class SysExitSignal(Exception):
+    ''' Signals a sys.exit() call
+    '''
+    def __init__(self, exit_code, *args, **kwargs):
+        self.exit_code = exit_code
+        super().__init__(*args, **kwargs)
 
 
-def download_audio(album_dir: Path, extra_args: list, urls: list, logger):
-    ''' Downloads one or more songs using yt-dlp in a subprocess into the
-    album_dir.
+def download_audio_embedded(album_dir: Path, extra_args: list, urls: list, logger):
+    ''' Downloads one or more songs using yt-dlp into the album_dir. If the
+    album_dir does not exist, yt-dlp will create it.
 
-    Embedding yt-dlp is not well documented. Calling yt-dlp, a Python program,
-    from within Python makes the most sense, but there is no easy
-    way to map from the command line options to a dict. Embedding yt-dlp
-    only seems to make sense if the argument list is static, which it is
-    not, here.
+    To trigger yt-dlp, its main() function is called. Because the main()
+    function may exit with sys.exit(), it is necessary to patch the sys.exit
+    function temporarily while yt-dlp does its thing, so as not to exit from
+    the ytbdl application.
 
     Args:
         album_dir (Path): The directory to download files into
@@ -36,20 +36,44 @@ def download_audio(album_dir: Path, extra_args: list, urls: list, logger):
         ))
     else:
         logger.debug('No extra arguments for yt-dlp found')
-    command = ['yt-dlp', *DEFAULT_YTDL_ARGS, *extra_args, '--', *urls]
-    logger.debug(msg='Opening subprocess: {0}'.format(
-        ' '.join(command)
-    ))
-    result = run(
-        args=command,
-        check=True,
-        shell=False,
-        stdin=sys.stdin,
-        stdout=sys.stdout,
-        stderr=sys.stderr,
-        cwd=str(album_dir))
-    result.check_returncode()
-    logger.debug('yt-dlp exited with return code 0')
+
+    # Arguments used instead of sys.argv
+    override_argv = [
+        '--extract-audio',
+        '--output',
+        str(album_dir / '%(title)s.%(ext)s'),
+        *extra_args,
+        '--',
+        *urls
+    ]
+
+    logger.debug(msg=(
+        'Using the following yt-dlp args in place of sys.argv: {0}'.format(
+        ' '.join(override_argv)
+    )))
+
+    # Patch sys.exit() so yt-dlp can't hijack the current process and exit too
+    # early
+    unpatched_exit = getattr(sys, 'exit')
+    try:
+        def patched_exit(*args, **_):
+            exit_code = args[0]
+            raise SysExitSignal(exit_code, 'yt-dlp exited with code {0}'.format(
+                exit_code
+            ))
+        setattr(sys, 'exit', patched_exit)
+
+        # Run yt-dlp's main() function
+        yt_dlp_main(argv=override_argv)
+
+    except SysExitSignal as exc:
+        if exc.exit_code != 0:
+            raise CalledProcessError(
+                exc.exit_code, ['yt-dlp', *override_argv]
+            ) from exc
+
+    finally:
+        sys.exit = unpatched_exit
 
 
 def ytdl_options(value: str) -> list:
