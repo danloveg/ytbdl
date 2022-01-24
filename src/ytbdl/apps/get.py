@@ -1,44 +1,17 @@
 #pylint: disable=consider-using-f-string
-import re
-import shlex
-import sys
-from subprocess import CalledProcessError, run
 from pathlib import Path
+from subprocess import CalledProcessError
+import re
+import sys
 
 import confuse
 
 from ytbdl import config_exists, config
+from ytbdl.apps.base import BaseApp
 from ytbdl.beets import beet_import
 from ytbdl.exceptions import ConfigurationError
-from ytbdl.apps.base import BaseApp
+from ytbdl.yt_dlp import ytdl_options, download_audio
 
-
-def ytdl_options(value: str) -> list:
-    ''' Convert a string into a set of command line arguments for yt-dlp
-
-    Args:
-        value (str): Input string received
-
-    Returns:
-        (list): A valid list of command line arguments for yt-dlp
-    '''
-    if not value:
-        return []
-
-    args = shlex.split(value)
-    for arg in ('-x', '--extract-audio'):
-        if arg in args:
-            raise ValueError(
-                f'The {arg} yt-dlp option is already specified for you, you do '
-                'not need to add it'
-            )
-    for arg in ('-o', '--output'):
-        if arg in args:
-            raise ValueError(
-                f'The {arg} yt-dlp option is already in use, you may not '
-                'specify a custom output format'
-            )
-    return args
 
 class DownloadApp(BaseApp):
     ''' App to download and tag audio files downloaded from the internet.
@@ -76,7 +49,6 @@ class DownloadApp(BaseApp):
         ))
 
     INVALID_FILENAME_CHARS = re.compile(r'[^\w\-_\. ]')
-    DEFAULT_YTDL_ARGS = ['--extract-audio', '--output', "%(title)s.%(ext)s"]
 
     def __init__(self):
         self.verbose = False
@@ -98,21 +70,17 @@ class DownloadApp(BaseApp):
         artist_name = kwargs.get('artist')
         album_name = kwargs.get('album')
         urls = kwargs.get('urls')
-
-        # Combine console and configuration ytdl args
         extra_args = kwargs.get('ytdl_args', [])
-        try:
-            for config_arg in config['ytdl_args'].get(list):
-                if config_arg not in extra_args:
-                    extra_args.append(config_arg)
-        except confuse.exceptions.NotFoundError:
-            self.logger.debug('ytdl_args option was not found in config file')
-        except confuse.exceptions.ConfigTypeError:
-            self.logger.error('ytdl_args config option is not a list!')
-            self.logger.warning('Aborting')
-            sys.exit(1)
 
         try:
+            # Construct yt-dlp extra arguments
+            if 'ytdl_args' in config:
+                for config_arg in config['ytdl_args'].get(list):
+                    if config_arg not in extra_args:
+                        extra_args.append(config_arg)
+            else:
+                self.logger.debug('ytdl_args not found in config file')
+
             # Create download directory
             album_dir = self.create_album_dir(artist_name, album_name)
 
@@ -120,7 +88,7 @@ class DownloadApp(BaseApp):
             self.logger.info(msg='Downloading "{0}" by {1}'.format(
                 album_name, artist_name
             ))
-            self.download_music(album_dir, extra_args, urls)
+            download_audio(album_dir, extra_args, urls, self.logger)
 
             # Autotag music in directory
             self.logger.info(msg='Autotagging album downloaded to {0}'.format(
@@ -128,6 +96,10 @@ class DownloadApp(BaseApp):
             ))
             beet_import(album_dir, self.logger)
 
+        except confuse.exceptions.ConfigTypeError:
+            self.logger.error('ytdl_args config option is not a list!')
+            self.logger.warning('Aborting')
+            sys.exit(1)
         except KeyboardInterrupt:
             self.logger.info('User interrupted program.')
             self.logger.info('Aborting.')
@@ -143,6 +115,7 @@ class DownloadApp(BaseApp):
             self.logger.error(msg=str(exc))
             self.logger.warning('Aborting')
             sys.exit(1)
+
 
     def create_album_dir(self, artist: str, album: str) -> Path:
         ''' Create the artist and album folders for the music to be moved into.
@@ -196,37 +169,3 @@ class DownloadApp(BaseApp):
             (str): A sanitized filename
         '''
         return self.INVALID_FILENAME_CHARS.sub('_', name)
-
-    def download_music(self, album_dir: Path, extra_args: list, urls: list):
-        ''' Downloads one or more songs using yt-dlp in a subprocess into the
-        album_dir.
-
-        Embedding yt-dlp is not well documented. Calling yt-dlp, a Python
-        program, from within Python makes the most sense, but there is no easy
-        way to map from the command line options to a dict. Embedding yt-dlp
-        only seems to make sense if the argument list is static, which it is
-        not, here.
-
-        Args:
-            album_dir (Path): The directory to download files into
-            urls (list): A list of URLs to download music from.
-        '''
-        if extra_args:
-            self.logger.info(msg='Using extra arguments for yt-dlp: {0}'.format(
-                ' '.join(extra_args)))
-        else:
-            self.logger.debug('No extra arguments for yt-dlp found')
-        command = ['yt-dlp', *self.DEFAULT_YTDL_ARGS, *extra_args, '--', *urls]
-        self.logger.debug(msg='Opening subprocess: {0}'.format(
-            ' '.join(command)
-        ))
-        result = run(
-            args=command,
-            check=True,
-            shell=False,
-            stdin=sys.stdin,
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            cwd=str(album_dir))
-        result.check_returncode()
-        self.logger.debug('yt-dlp exited with return code 0')

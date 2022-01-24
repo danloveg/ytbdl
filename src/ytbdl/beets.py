@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import os
 
 from beets import config as beetsconfig
-from beets.ui import _setup as _beetssetup
+from beets.ui import _setup as setup_beets
 from beets.ui.commands import import_files
 
 from ytbdl import beetsplug
@@ -68,7 +68,7 @@ def beet_import(album_dir: Path, logger):
             library=None,
         )
 
-        _, plugins, library = _beetssetup(setup_options)
+        _, plugins, library = setup_beets(setup_options)
 
         # Start the import
         paths = [str(album_dir).encode('utf-8')]
