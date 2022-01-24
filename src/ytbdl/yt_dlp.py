@@ -14,7 +14,7 @@ class SysExitSignal(Exception):
         super().__init__(*args, **kwargs)
 
 
-def download_audio_embedded(album_dir: Path, extra_args: list, urls: list, logger):
+def download_audio(album_dir: Path, extra_args: list, urls: list, logger):
     ''' Downloads one or more songs using yt-dlp into the album_dir. If the
     album_dir does not exist, yt-dlp will create it.
 

@@ -81,10 +81,10 @@ class DownloadApp(BaseApp):
             else:
                 self.logger.debug('ytdl_args not found in config file')
 
-            # Create download directory
-            album_dir = self.create_album_dir(artist_name, album_name)
+            album_dir = self.get_album_dir(artist_name, album_name)
 
-            # Download music to directory
+            # Download music to directory (yt-dlp will create the directory if
+            # it's missing)
             self.logger.info(msg='Downloading "{0}" by {1}'.format(
                 album_name, artist_name
             ))
@@ -117,10 +117,10 @@ class DownloadApp(BaseApp):
             sys.exit(1)
 
 
-    def create_album_dir(self, artist: str, album: str) -> Path:
-        ''' Create the artist and album folders for the music to be moved into.
-        If the album folder already exists and is not empty, an exception is
-        raised as this may indicate that the album has already been downloaded.
+    def get_album_dir(self, artist: str, album: str) -> Path:
+        ''' Get the path to the artist/album folder. If the album folder already
+        exists and is not empty, an exception is raised as this may indicate
+        that the album has already been downloaded.
 
         The directory structure is created under the current directory in this
         manner:
@@ -136,36 +136,16 @@ class DownloadApp(BaseApp):
             album (str): The name of album by the artist
 
         Returns:
-            (Path): A path to the album folder
+            (Path): A path to the album folder relative to the current directory
         '''
-        root = Path('.')
-        artist_folder = root / self.clean_path_name(artist)
-        if not artist_folder.exists():
-            self.logger.debug(msg='Creating artist folder "{0}"'.format(
-                artist_folder
-            ))
-            artist_folder.mkdir()
-        album_folder = artist_folder / self.clean_path_name(album)
+        def sanitize_path(name):
+            return self.INVALID_FILENAME_CHARS.sub('_', name)
+
+        album_folder = Path('.') / sanitize_path(artist) / sanitize_path(album)
         if album_folder.exists() and list(album_folder.glob('*')):
             raise FileExistsError(
                 'The album folder "{0}" already exists and is not empty'.format(
                     str(album_folder)
                 )
             )
-        if not album_folder.exists():
-            self.logger.debug(msg='Creating album folder "{0}"'.format(
-                album_folder
-            ))
-            album_folder.mkdir()
         return album_folder
-
-    def clean_path_name(self, name):
-        ''' Replace any invalid file name characters with an underline
-
-        Args:
-            name (str): The file name
-
-        Returns:
-            (str): A sanitized filename
-        '''
-        return self.INVALID_FILENAME_CHARS.sub('_', name)
