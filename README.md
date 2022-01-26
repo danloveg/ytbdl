@@ -8,9 +8,16 @@ Note that this application only supports Python 3.6+.
 
 ## Installation
 
-Clone this repository, open a terminal or shell in the `ytbdl` directory, and run the following command:
+Install the ytbdl tool with pip:
 
 ```shell
+pip install ytbdl
+```
+
+Or, download or clone the [ytbdl GitHub repository](https://github.com/danloveg/ytbdl) and install it with pip:
+
+```shell
+cd ytbdl
 pip install -e .
 ```
 
@@ -22,7 +29,7 @@ Before using ytbdl for this first time, you need to create a configuration file.
 ytbdl config create
 ```
 
-Then, to download an album from a playlist at https://youtube.com/some_playlist:
+Then, to download an album (by an artist) from a playlist at https://youtube.com/some_playlist:
 
 ```shell
 ytbdl get 'Artist' 'Album' 'https://youtube.com/some_playlist'
