@@ -1,8 +1,20 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
 setup(
     name='ytbdl',
-    version='0.0.4',
+    version='0.0.5',
+    author='Daniel Lovegrove',
+    author_email='d.lovegrove11@gmail.com',
+    description='Download music with yt-dlp and autotag it with beets',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='https://github.com/danloveg/ytbdl',
+    license='MIT',
+
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
     scripts=[],
@@ -24,10 +36,4 @@ setup(
     },
 
     python_requires='>=3.6.0',
-
-    zip_safe=False,
-    description='Download music with yt-dlp and autotag it with beets',
-    author='Daniel Lovegrove',
-    author_email='d.lovegrove11@gmail.com',
-    license='MIT',
 )
