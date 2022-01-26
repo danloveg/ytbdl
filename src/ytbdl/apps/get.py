@@ -142,7 +142,8 @@ class DownloadApp(BaseApp):
             return self.INVALID_FILENAME_CHARS.sub('_', name)
 
         album_folder = Path('.') / sanitize_path(artist) / sanitize_path(album)
-        if album_folder.exists() and list(album_folder.glob('*')):
+        if album_folder.exists() and album_folder.is_dir() and \
+            any(album_folder.glob('*')):
             raise FileExistsError(
                 'The album folder "{0}" already exists and is not empty'.format(
                     str(album_folder)
