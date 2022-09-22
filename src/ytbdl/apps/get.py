@@ -90,7 +90,7 @@ class DownloadApp(BaseApp):
 
             # Autotag music in directory
             self.logger.info('Autotagging album downloaded to %s', str(album_dir))
-            beet_import(album_dir, self.logger, verbose=self.verbose)
+            beet_import(album_dir, self.logger)
 
         except confuse.exceptions.ConfigTypeError:
             self.logger.error('ytdl_args config option is not a list!')
