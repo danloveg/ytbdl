@@ -85,16 +85,12 @@ class DownloadApp(BaseApp):
 
             # Download music to directory (yt-dlp will create the directory if
             # it's missing)
-            self.logger.info(msg='Downloading "{0}" by {1}'.format(
-                album_name, artist_name
-            ))
+            self.logger.info('Downloading "%s" by %s', album_name, artist_name)
             download_audio(album_dir, extra_args, urls, self.logger)
 
             # Autotag music in directory
-            self.logger.info(msg='Autotagging album downloaded to {0}'.format(
-                str(album_dir)
-            ))
-            beet_import(album_dir, self.logger)
+            self.logger.info('Autotagging album downloaded to %s', str(album_dir))
+            beet_import(album_dir, self.logger, verbose=self.verbose)
 
         except confuse.exceptions.ConfigTypeError:
             self.logger.error('ytdl_args config option is not a list!')
@@ -105,14 +101,12 @@ class DownloadApp(BaseApp):
             self.logger.info('Aborting.')
             sys.exit(2)
         except FileExistsError as exc:
-            self.logger.error(msg='FileExistsError: {0}'.format(str(exc)))
+            self.logger.error('FileExistsError: %s', str(exc))
             self.logger.warning('Aborting')
             sys.exit(1)
         except (CalledProcessError, ConfigurationError) as exc:
-            self.logger.error(msg='{0} encountered:'.format(
-                exc.__class__.__name__
-            ))
-            self.logger.error(msg=str(exc))
+            self.logger.error('%s encountered:', exc.__class__.__name__)
+            self.logger.error(str(exc))
             self.logger.warning('Aborting')
             sys.exit(1)
 

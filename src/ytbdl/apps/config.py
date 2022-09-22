@@ -92,4 +92,4 @@ class ConfigApp(BaseApp):
             self.logger.info('The default_config.yaml file does not exist.')
         else:
             shutil.copy(default_config, new_config_file)
-            self.logger.info(msg='Created a new configuration file at {0}.'.format(new_config_file))
+            self.logger.info('Created a new configuration file at %s', new_config_file)
