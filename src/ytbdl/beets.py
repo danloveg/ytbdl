@@ -1,8 +1,8 @@
-#pylint: disable=consider-using-f-string
+''' Interactions with beets
+'''
 from argparse import Namespace as ArgparseNamespace
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import os
 
 from beets import config as beetsconfig
 from beets.ui import _setup as setup_beets
@@ -43,7 +43,7 @@ def beet_import(album_dir: Path, logger):
         album_dir (Path): A path to an album directory where some music exists
         logger: A logging object
     '''
-    import_dir = str(Path(album_dir).parent.parent.resolve()).replace('\\', '/')
+    import_dir = str(album_dir.parent.parent.resolve()).replace('\\', '/')
     beetsplug_dir = str(Path(beetsplug.__file__).parent.resolve()).replace('\\', '/')
 
     config_content = get_custom_config_contents(
@@ -52,14 +52,12 @@ def beet_import(album_dir: Path, logger):
     )
 
     with TemporaryDirectory() as temp_dir:
-        temp_file_path = os.path.join(temp_dir, 'config.yaml')
+        temp_file_path = Path(temp_dir) / 'config.yaml'
 
         with open(temp_file_path, 'w', encoding='utf-8') as temp_config:
             temp_config.write(config_content)
 
-        logger.debug(msg=('Created a temporary beets config at: {0}'.format(
-            temp_file_path
-        )))
+        logger.debug('Created a temporary beets config at: %s', temp_file_path)
 
         setup_options = ArgparseNamespace(
             directory=None,
